@@ -56,30 +56,36 @@ export default function AuthView({ onLogin }: AuthViewProps) {
         return
       }
 
-      // Validate Canvas token by making a test API call
-      const response = await fetch(
-        `${canvasInstanceUrl}/api/v1/users/self`,
-        {
-          headers: { Authorization: `Bearer ${canvasToken}` },
-        }
-      )
+      // Validate Canvas token via backend (server-side to avoid CORS)
+      // Use VITE_BACKEND_URL if set (for dev server), otherwise use relative path (for Netlify Functions)
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || ''
+      const response = await fetch(`${backendUrl}/api/auth/validate-canvas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: canvasToken,
+          instanceUrl: canvasInstanceUrl,
+        }),
+      })
 
       if (!response.ok) {
-        setError('Invalid Canvas token or instance URL')
+        const errorData = await response.json()
+        setError(errorData.error || 'Invalid Canvas credentials')
         return
       }
 
-      const user = await response.json()
+      const result = await response.json()
 
       onLogin({
         id: `teacher_${Date.now()}`,
         email,
-        name: user.name || email,
-        canvasToken, // Stored locally only
+        name: result.user.name || email,
+        canvasToken, // Stored locally only (never sent to backend again)
         canvasInstanceUrl,
       })
     } catch (err) {
-      setError('Failed to connect to Canvas. Check your instance URL.')
+      console.error('Canvas login error:', err)
+      setError('Failed to connect to Canvas. Check your instance URL and try again.')
     } finally {
       setLoading(false)
     }
