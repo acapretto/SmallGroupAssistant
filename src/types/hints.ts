@@ -80,7 +80,7 @@ export interface HintAnalytics {
   studentName: string;
   problemId: string;
   totalHintsRequested: number;
-  hintsBy Level: {
+  hintsByLevel: {
     level1: number;
     level2: number;
     level3: number;
