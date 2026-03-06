@@ -37,3 +37,6 @@ Thumbs.db
 
 # Temporary
 .turbo
+
+# Local Netlify folder
+.netlify

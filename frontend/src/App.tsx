@@ -1,223 +1,115 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import AuthView from './views/AuthView'
+import RosterManagementView from './views/RosterManagementView'
+import GroupManagementView from './views/GroupManagementView'
+import ResourceSharingView from './views/ResourceSharingView'
+import DashboardView from './views/DashboardView'
 
-// Component imports
-import TutorChat from './components/TutorChat'
-import ExampleGenerator from './components/ExampleGenerator'
-import ProblemSet from './components/ProblemSet'
+type ViewMode = 'auth' | 'roster' | 'groups' | 'resources' | 'dashboard'
 
-interface Group {
+interface TeacherSession {
   id: string
+  email: string
   name: string
-  members: string[]
-  topic: string
+  canvasToken?: string
+  canvasInstanceUrl?: string
 }
-
-interface Session {
-  id: string
-  groupId: string
-  topic: string
-  startTime: Date
-  messages: Array<{ role: string; content: string; timestamp: number }>
-  problemsAttempted: number
-  score: { correct: number; total: number }
-  status: 'active' | 'paused' | 'completed'
-}
-
-type ViewMode = 'groups' | 'tutor' | 'sessions'
 
 function App() {
-  const [viewMode, setViewMode] = useState<ViewMode>('groups')
-  const [groups, setGroups] = useState<Group[]>([])
-  const [sessions, setSessions] = useState<Session[]>([])
-  const [currentSession, setCurrentSession] = useState<Session | null>(null)
+  const [currentView, setCurrentView] = useState<ViewMode>('auth')
+  const [teacher, setTeacher] = useState<TeacherSession | null>(null)
+  const [selectedRosterId, setSelectedRosterId] = useState<string | null>(null)
 
-  // Initialize with sample groups
+  // Initialize from localStorage
   useEffect(() => {
-    const sampleGroups: Group[] = [
-      {
-        id: 'group-1',
-        name: 'Algebra 1 - Period 3',
-        members: ['Alice', 'Bob', 'Charlie', 'Diana'],
-        topic: 'Quadratic Equations',
-      },
-      {
-        id: 'group-2',
-        name: 'Algebra 2 - Period 5',
-        members: ['Eve', 'Frank'],
-        topic: 'Systems of Linear Equations',
-      },
-    ]
-    setGroups(sampleGroups)
-
-    // Load sessions from localStorage
-    const saved = localStorage.getItem('smallgroup_sessions')
+    const saved = localStorage.getItem('sga_teacher')
     if (saved) {
-      setSessions(JSON.parse(saved))
+      try {
+        setTeacher(JSON.parse(saved))
+        setCurrentView('roster')
+      } catch (e) {
+        localStorage.removeItem('sga_teacher')
+      }
     }
   }, [])
 
-  const handleStartSession = (groupId: string) => {
-    const group = groups.find(g => g.id === groupId)
-    if (!group) return
-
-    const newSession: Session = {
-      id: `session_${Date.now()}`,
-      groupId,
-      topic: group.topic,
-      startTime: new Date(),
-      messages: [],
-      problemsAttempted: 0,
-      score: { correct: 0, total: 0 },
-      status: 'active',
-    }
-
-    setCurrentSession(newSession)
-    setViewMode('tutor')
+  const handleLogin = (session: TeacherSession) => {
+    setTeacher(session)
+    localStorage.setItem('sga_teacher', JSON.stringify(session))
+    setCurrentView('roster')
   }
 
-  const handleEndSession = () => {
-    if (currentSession) {
-      const updatedSession = {
-        ...currentSession,
-        status: 'completed' as const,
-      }
-      setSessions([...sessions, updatedSession])
+  const handleLogout = () => {
+    setTeacher(null)
+    localStorage.removeItem('sga_teacher')
+    setCurrentView('auth')
+  }
 
-      // Save to localStorage
-      localStorage.setItem('smallgroup_sessions', JSON.stringify([...sessions, updatedSession]))
-
-      setCurrentSession(null)
-      setViewMode('sessions')
-    }
+  if (!teacher) {
+    return <AuthView onLogin={handleLogin} />
   }
 
   return (
     <div className="app">
-      {/* Navigation Header */}
+      {/* Header */}
       <header className="app-header">
         <div className="header-content">
           <h1>SmallGroupAssistant</h1>
-          <p>AI-powered tutoring for collaborative learning</p>
+          <p>Collaborative resource sharing for small group work</p>
         </div>
         <nav className="nav-tabs">
           <button
-            className={`nav-tab ${viewMode === 'groups' ? 'active' : ''}`}
-            onClick={() => setViewMode('groups')}
+            className={`nav-tab ${currentView === 'roster' ? 'active' : ''}`}
+            onClick={() => setCurrentView('roster')}
           >
-            📚 Groups
+            📋 Rosters
           </button>
           <button
-            className={`nav-tab ${viewMode === 'tutor' ? 'active' : ''}`}
-            onClick={() => setViewMode('tutor')}
-            disabled={!currentSession}
+            className={`nav-tab ${currentView === 'groups' ? 'active' : ''}`}
+            onClick={() => setCurrentView('groups')}
+            disabled={!selectedRosterId}
           >
-            🎓 Tutor
+            👥 Groups
           </button>
           <button
-            className={`nav-tab ${viewMode === 'sessions' ? 'active' : ''}`}
-            onClick={() => setViewMode('sessions')}
+            className={`nav-tab ${currentView === 'resources' ? 'active' : ''}`}
+            onClick={() => setCurrentView('resources')}
           >
-            📊 Sessions
+            📁 Share Resource
+          </button>
+          <button
+            className={`nav-tab ${currentView === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setCurrentView('dashboard')}
+          >
+            📊 Dashboard
+          </button>
+          <button className="nav-tab logout-btn" onClick={handleLogout}>
+            🚪 Logout
           </button>
         </nav>
       </header>
 
       {/* Main Content */}
       <main className="app-content">
-        {/* Groups View */}
-        {viewMode === 'groups' && (
-          <section className="view groups-view">
-            <h2>Select a Group to Start</h2>
-            <div className="groups-grid">
-              {groups.map(group => (
-                <div key={group.id} className="group-card">
-                  <h3>{group.name}</h3>
-                  <p className="topic">Topic: {group.topic}</p>
-                  <div className="members">
-                    <strong>Members:</strong> {group.members.join(', ')}
-                  </div>
-                  <button
-                    className="btn-primary"
-                    onClick={() => handleStartSession(group.id)}
-                  >
-                    Start Tutoring Session
-                  </button>
-                </div>
-              ))}
-            </div>
-          </section>
+        {currentView === 'roster' && (
+          <RosterManagementView
+            teacherId={teacher.id}
+            onRosterSelect={setSelectedRosterId}
+          />
         )}
-
-        {/* Tutor View */}
-        {viewMode === 'tutor' && currentSession && (
-          <section className="view tutor-view">
-            <div className="tutor-header">
-              <h2>
-                {groups.find(g => g.id === currentSession.groupId)?.name}
-              </h2>
-              <p className="topic-info">Topic: {currentSession.topic}</p>
-              <button className="btn-danger" onClick={handleEndSession}>
-                End Session
-              </button>
-            </div>
-
-            {/* Integrated components */}
-            <div className="components-container">
-              <div className="tutor-chat-panel">
-                <TutorChat
-                  groupId={currentSession.groupId}
-                  topic={currentSession.topic}
-                />
-              </div>
-              <div className="learning-tools-panel">
-                <ExampleGenerator
-                  topic={currentSession.topic}
-                  difficulty="intermediate"
-                />
-                <ProblemSet
-                  topic={currentSession.topic}
-                  count={3}
-                />
-              </div>
-            </div>
-
-            <div className="session-info">
-              <p>Session ID: {currentSession.id}</p>
-              <p>Duration: {Math.round((Date.now() - currentSession.startTime.getTime()) / 1000)}s</p>
-              <p>Score: {currentSession.score.correct}/{currentSession.score.total}</p>
-            </div>
-          </section>
+        {currentView === 'groups' && selectedRosterId && (
+          <GroupManagementView rosterId={selectedRosterId} teacherId={teacher.id} />
         )}
-
-        {/* Sessions View */}
-        {viewMode === 'sessions' && (
-          <section className="view sessions-view">
-            <h2>Session History</h2>
-            {sessions.length === 0 ? (
-              <p className="empty-state">No sessions yet. Start one from the Groups tab!</p>
-            ) : (
-              <div className="sessions-list">
-                {sessions.map(session => (
-                  <div key={session.id} className="session-card">
-                    <h3>
-                      {groups.find(g => g.id === session.groupId)?.name}
-                    </h3>
-                    <p>Topic: {session.topic}</p>
-                    <p>Date: {new Date(session.startTime).toLocaleString()}</p>
-                    <p>Score: {session.score.correct}/{session.score.total}</p>
-                    <p>Status: {session.status}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+        {currentView === 'resources' && <ResourceSharingView teacherId={teacher.id} />}
+        {currentView === 'dashboard' && (
+          <DashboardView teacherId={teacher.id} />
         )}
       </main>
 
       {/* Footer */}
       <footer className="app-footer">
-        <p>SmallGroupAssistant V0.1 | Build something great together</p>
+        <p>SmallGroupAssistant | Faster Planning. Better Materials. Less Late Nights.</p>
       </footer>
     </div>
   )
