@@ -1,419 +1,138 @@
-/**
- * ProblemSet.tsx - React component for displaying and managing practice problems
- * Displays problems one at a time, collects answers, auto-grades, and tracks progress
- */
+import { useState } from 'react'
+import './ProblemSet.css'
 
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  Problem,
-  ProblemGenerationRequest,
-  CheckAnswerResponse,
-  ProblemSetState,
-} from "../types/problem";
+interface Problem {
+  id: string
+  text: string
+  correctAnswer: string
+  hints: string[]
+}
 
 interface ProblemSetProps {
-  topic?: string;
-  count?: number;
-  difficultyLevel?: string;
-  onComplete?: (score: number, totalProblems: number) => void;
+  topic?: string
+  count?: number
 }
 
-interface GradeResult {
-  problemId: string;
-  correct: boolean;
-  feedback: string;
-  explanation?: string;
-  hint?: string;
-}
+export default function ProblemSet({ count = 3 }: ProblemSetProps = {}) {
+  const allProblems: Problem[] = [
+    {
+      id: '1',
+      text: 'Solve: x² - 5x + 6 = 0',
+      correctAnswer: 'x = 2 or x = 3',
+      hints: ['Try factoring first', 'What two numbers multiply to 6 and add to -5?', '(x - 2)(x - 3) = 0'],
+    },
+    {
+      id: '2',
+      text: 'Solve: 2x + 3 = 11',
+      correctAnswer: 'x = 4',
+      hints: ['Subtract 3 from both sides', '2x = 8', 'x = 4'],
+    },
+    {
+      id: '3',
+      text: 'Simplify: √(16x²)',
+      correctAnswer: '4|x| or 4x (if x ≥ 0)',
+      hints: ['√16 = 4', '√(x²) = |x|', 'Combine them'],
+    },
+  ]
+  const [problems] = useState<Problem[]>(allProblems.slice(0, count))
 
-const ProblemSet: React.FC<ProblemSetProps> = ({
-  topic = "Algebra",
-  count = 3,
-  difficultyLevel = "medium",
-  onComplete,
-}) => {
-  const [state, setState] = useState<ProblemSetState>({
-    problems: [],
-    currentIndex: 0,
-    userAnswers: new Map(),
-    scores: new Map(),
-    isLoading: true,
-    totalCorrect: 0,
-  });
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [, setAnswers] = useState<Record<string, string>>({})
+  const [feedback, setFeedback] = useState<Record<string, boolean>>({})
+  const [showHint, setShowHint] = useState(false)
+  const [hintLevel, setHintLevel] = useState(0)
 
-  const [currentAnswer, setCurrentAnswer] = useState("");
-  const [gradeResult, setGradeResult] = useState<GradeResult | null>(null);
-  const [hintIndex, setHintIndex] = useState(0);
-  const [showHint, setShowHint] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const current = problems[currentIndex]
+  const isAnswered = feedback[current.id] !== undefined
 
-  /**
-   * Generate problems on component mount
-   */
-  useEffect(() => {
-    generateProblems();
-  }, [topic, count, difficultyLevel]);
-
-  const generateProblems = async () => {
-    setState((prev) => ({ ...prev, isLoading: true, error: undefined }));
-    try {
-      const request: ProblemGenerationRequest = {
-        topic,
-        count: Math.max(3, Math.min(5, count)),
-        difficultyLevel,
-      };
-
-      const response = await fetch("/api/problems/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to generate problems");
-      }
-
-      const data = await response.json();
-      setState((prev) => ({
-        ...prev,
-        problems: data.problems,
-        isLoading: false,
-        currentIndex: 0,
-        userAnswers: new Map(),
-        scores: new Map(),
-        totalCorrect: 0,
-      }));
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown error occurred";
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: message,
-      }));
-    }
-  };
-
-  const checkAnswer = async () => {
-    if (!currentAnswer.trim()) {
-      alert("Please enter an answer before submitting.");
-      return;
-    }
-
-    const problem = state.problems[state.currentIndex];
-    if (!problem) return;
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/problems/check-answer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          problemId: problem.id,
-          userAnswer: currentAnswer,
-          problemText: problem.problemText,
-          correctAnswer: problem.correctAnswer,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to grade answer");
-      }
-
-      const result: CheckAnswerResponse & { problemId: string } =
-        await response.json();
-
-      const isCorrect = result.correct;
-      setGradeResult({
-        problemId: problem.id,
-        correct: isCorrect,
-        feedback: result.feedback,
-        explanation: result.explanation,
-        hint: result.hint,
-      });
-
-      // Update scores
-      setState((prev) => {
-        const newScores = new Map(prev.scores);
-        newScores.set(problem.id, isCorrect);
-
-        const totalCorrect = Array.from(newScores.values()).filter(
-          (v) => v
-        ).length;
-
-        return {
-          ...prev,
-          scores: newScores,
-          totalCorrect,
-        };
-      });
-
-      // Store answer
-      setState((prev) => {
-        const newAnswers = new Map(prev.userAnswers);
-        newAnswers.set(problem.id, currentAnswer);
-        return { ...prev, userAnswers: newAnswers };
-      });
-
-      setShowHint(false);
-      setHintIndex(0);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to grade answer";
-      setState((prev) => ({ ...prev, error: message }));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleNext = () => {
-    if (state.currentIndex < state.problems.length - 1) {
-      setState((prev) => ({
-        ...prev,
-        currentIndex: prev.currentIndex + 1,
-      }));
-      resetProblemState();
-    } else {
-      // All problems completed
-      if (onComplete) {
-        onComplete(state.totalCorrect, state.problems.length);
-      }
-    }
-  };
-
-  const handleSkip = () => {
-    // Store skip as incorrect
-    const problem = state.problems[state.currentIndex];
-    setState((prev) => {
-      const newScores = new Map(prev.scores);
-      newScores.set(problem.id, false);
-      return {
-        ...prev,
-        scores: newScores,
-      };
-    });
-    handleNext();
-  };
-
-  const handleHint = () => {
-    const problem = state.problems[state.currentIndex];
-    if (!problem || !problem.hints) return;
-
-    if (hintIndex < problem.hints.length) {
-      setShowHint(true);
-      setHintIndex((prev) => Math.min(prev + 1, problem.hints.length));
-    }
-  };
-
-  const handleReset = () => {
-    resetProblemState();
-    setGradeResult(null);
-  };
-
-  const resetProblemState = () => {
-    setCurrentAnswer("");
-    setShowHint(false);
-    setHintIndex(0);
-    setGradeResult(null);
-  };
-
-  const handleRegenerateTopic = () => {
-    generateProblems();
-    resetProblemState();
-  };
-
-  // Loading state
-  if (state.isLoading) {
-    return (
-      <div className="problem-set loading">
-        <div className="spinner"></div>
-        <p>Generating practice problems on {topic}...</p>
-      </div>
-    );
+  const handleSubmitAnswer = (answer: string) => {
+    const isCorrect = answer.toLowerCase().includes(current.correctAnswer.toLowerCase().split(' ')[0])
+    setAnswers(prev => ({ ...prev, [current.id]: answer }))
+    setFeedback(prev => ({ ...prev, [current.id]: isCorrect }))
   }
 
-  // Error state
-  if (state.error) {
-    return (
-      <div className="problem-set error">
-        <h2>Error</h2>
-        <p>{state.error}</p>
-        <button onClick={handleRegenerateTopic}>Try Again</button>
-      </div>
-    );
+  const handleNextProblem = () => {
+    if (currentIndex < problems.length - 1) {
+      setCurrentIndex(currentIndex + 1)
+      setShowHint(false)
+      setHintLevel(0)
+    }
   }
 
-  // Empty state
-  if (!state.problems || state.problems.length === 0) {
-    return (
-      <div className="problem-set empty">
-        <p>No problems available.</p>
-        <button onClick={generateProblems}>Generate Problems</button>
-      </div>
-    );
+  const handleShowHint = () => {
+    if (hintLevel < current.hints.length) {
+      setShowHint(true)
+      setHintLevel(hintLevel + 1)
+    }
   }
 
-  const problem = state.problems[state.currentIndex];
-  const isLastProblem = state.currentIndex === state.problems.length - 1;
-  const hasAnswered = state.scores.has(problem.id);
-  const isCorrect = state.scores.get(problem.id);
+  const correct = Object.values(feedback).filter(v => v).length
 
   return (
     <div className="problem-set">
-      {/* Progress bar */}
-      <div className="progress-section">
-        <div className="progress-info">
-          <span className="problem-counter">
-            Problem {state.currentIndex + 1} of {state.problems.length}
-          </span>
-          <span className="score">
-            Score: {state.totalCorrect}/{state.problems.length}
-          </span>
-        </div>
-        <div className="progress-bar">
-          <div
-            className="progress-fill"
-            style={{
-              width: `${((state.currentIndex + 1) / state.problems.length) * 100}%`,
-            }}
-          ></div>
-        </div>
+      <div className="progress-bar">
+        <div className="progress-fill" style={{ width: `${((currentIndex + 1) / problems.length) * 100}%` }} />
       </div>
+      <p className="progress-text">
+        {currentIndex + 1} of {problems.length} | Correct: {correct}
+      </p>
 
-      {/* Problem display */}
-      <div className="problem-container">
-        <div className="problem-header">
-          <h2>Problem</h2>
-          <span className="difficulty-badge">{difficultyLevel}</span>
-        </div>
+      <div className="problem-card">
+        <h3>Problem {currentIndex + 1}</h3>
+        <p className="problem-text">{current.text}</p>
 
-        <div className="problem-text">
-          <p>{problem.problemText}</p>
-        </div>
-
-        {/* Input section */}
-        {!hasAnswered ? (
-          <div className="input-section">
-            <label htmlFor="answer-input">Your Answer:</label>
-            <input
-              id="answer-input"
-              type="text"
-              value={currentAnswer}
-              onChange={(e) => setCurrentAnswer(e.target.value)}
-              placeholder="Enter your answer..."
-              disabled={isSubmitting}
-              onKeyPress={(e) => {
-                if (e.key === "Enter" && !isSubmitting) {
-                  checkAnswer();
-                }
-              }}
-            />
-
-            {/* Hint button and display */}
-            {hintIndex < (problem.hints?.length || 0) && (
-              <button
-                className="hint-button"
-                onClick={handleHint}
-                disabled={isSubmitting}
-              >
-                💡 Hint ({hintIndex + 1}/{problem.hints?.length || 0})
-              </button>
-            )}
-
-            {showHint && hintIndex > 0 && (
-              <div className="hint-box">
-                <p>{problem.hints?.[hintIndex - 1]}</p>
-              </div>
-            )}
-
-            {/* Action buttons */}
-            <div className="action-buttons">
-              <button
-                className="submit-button"
-                onClick={checkAnswer}
-                disabled={isSubmitting || !currentAnswer.trim()}
-              >
-                {isSubmitting ? "Checking..." : "Check Answer"}
-              </button>
-
-              {!hasAnswered && (
-                <button
-                  className="skip-button"
-                  onClick={handleSkip}
-                  disabled={isSubmitting}
-                >
-                  Skip
-                </button>
-              )}
-            </div>
-          </div>
-        ) : (
-          /* Feedback section */
-          <div
-            className={`feedback-section ${isCorrect ? "correct" : "incorrect"}`}
+        {!isAnswered ? (
+          <form
+            onSubmit={e => {
+              e.preventDefault()
+              const input = (e.target as any).answer.value
+              handleSubmitAnswer(input)
+            }}
           >
-            <div className="feedback-icon">
-              {isCorrect ? "✓" : "✗"}
-            </div>
-            <h3>{isCorrect ? "Correct!" : "Not quite right."}</h3>
-            <p className="feedback-text">{gradeResult?.feedback}</p>
+            <input
+              type="text"
+              name="answer"
+              placeholder="Enter your answer..."
+              className="answer-input"
+              autoFocus
+            />
+            <button type="submit" className="submit-btn">
+              Submit
+            </button>
+          </form>
+        ) : (
+          <div className={`feedback ${feedback[current.id] ? 'correct' : 'incorrect'}`}>
+            {feedback[current.id] ? '✅ Correct!' : '❌ Not quite right'}
+            <p className="correct-answer">Correct answer: {current.correctAnswer}</p>
+          </div>
+        )}
 
-            {gradeResult?.explanation && (
-              <div className="explanation">
-                <p>
-                  <strong>Explanation:</strong> {gradeResult.explanation}
-                </p>
-              </div>
-            )}
+        {!isAnswered && (
+          <button className="hint-btn" onClick={handleShowHint}>
+            💡 Get Hint ({hintLevel + 1}/3)
+          </button>
+        )}
 
-            {gradeResult?.hint && (
-              <div className="next-hint">
-                <p>
-                  <strong>Next hint:</strong> {gradeResult.hint}
-                </p>
-              </div>
-            )}
+        {showHint && (
+          <div className="hint-box">
+            <strong>Hint:</strong> {current.hints[hintLevel - 1]}
+          </div>
+        )}
 
-            <div className="feedback-actions">
-              <button
-                className="reset-button"
-                onClick={handleReset}
-              >
-                Try Again
-              </button>
+        {isAnswered && currentIndex < problems.length - 1 && (
+          <button className="next-btn" onClick={handleNextProblem}>
+            Next Problem →
+          </button>
+        )}
 
-              <button
-                className={`next-button ${isLastProblem ? "complete" : ""}`}
-                onClick={handleNext}
-              >
-                {isLastProblem ? "View Results" : "Next Problem"}
-              </button>
-            </div>
+        {isAnswered && currentIndex === problems.length - 1 && (
+          <div className="completion">
+            <h4>🎉 Done!</h4>
+            <p>You got {correct}/{problems.length} correct</p>
+            <p>{((correct / problems.length) * 100).toFixed(0)}% mastery</p>
           </div>
         )}
       </div>
-
-      {/* Results summary (shown at end) */}
-      {isLastProblem && hasAnswered && (
-        <div className="results-summary">
-          <h3>Session Summary</h3>
-          <p>
-            You got <strong>{state.totalCorrect}</strong> out of{" "}
-            <strong>{state.problems.length}</strong> problems correct.
-          </p>
-          <div className="results-percentage">
-            {Math.round((state.totalCorrect / state.problems.length) * 100)}%
-          </div>
-          <button onClick={handleRegenerateTopic} className="regenerate-button">
-            Generate New Problems
-          </button>
-        </div>
-      )}
     </div>
-  );
-};
-
-export default ProblemSet;
+  )
+}

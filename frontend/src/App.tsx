@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-// Component imports (will be created in next step)
-// import TutorChat from './components/TutorChat'
-// import ExampleGenerator from './components/ExampleGenerator'
-// import ProblemSet from './components/ProblemSet'
-// import HintSystem from './components/HintSystem'
-// import SessionViewer from './components/SessionViewer'
+// Component imports
+import TutorChat from './components/TutorChat'
+import ExampleGenerator from './components/ExampleGenerator'
+import ProblemSet from './components/ProblemSet'
 
 interface Group {
   id: string
@@ -31,7 +29,6 @@ type ViewMode = 'groups' | 'tutor' | 'sessions'
 function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('groups')
   const [groups, setGroups] = useState<Group[]>([])
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
   const [currentSession, setCurrentSession] = useState<Session | null>(null)
 
@@ -76,7 +73,6 @@ function App() {
     }
 
     setCurrentSession(newSession)
-    setSelectedGroupId(groupId)
     setViewMode('tutor')
   }
 
@@ -166,19 +162,23 @@ function App() {
               </button>
             </div>
 
-            {/* Placeholder for integrated components */}
-            <div className="components-placeholder">
-              <div className="placeholder-box">
-                <h3>🎓 AI Tutor Chat</h3>
-                <p>TutorChat component will render here</p>
+            {/* Integrated components */}
+            <div className="components-container">
+              <div className="tutor-chat-panel">
+                <TutorChat
+                  groupId={currentSession.groupId}
+                  topic={currentSession.topic}
+                />
               </div>
-              <div className="placeholder-box">
-                <h3>💡 Examples & Problems</h3>
-                <p>ExampleGenerator & ProblemSet will render here</p>
-              </div>
-              <div className="placeholder-box">
-                <h3>🔍 Hints & Support</h3>
-                <p>HintSystem will render here</p>
+              <div className="learning-tools-panel">
+                <ExampleGenerator
+                  topic={currentSession.topic}
+                  difficulty="intermediate"
+                />
+                <ProblemSet
+                  topic={currentSession.topic}
+                  count={3}
+                />
               </div>
             </div>
 

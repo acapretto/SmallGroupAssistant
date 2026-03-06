@@ -1,0 +1,75 @@
+.example-generator {
+  margin: 1rem 0;
+}
+
+.example-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.example-btn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.example-panel {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 0.75rem;
+}
+
+.example-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.example-content pre {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  border: 1px solid #bbf7d0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.copy-btn, .refresh-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.refresh-btn {
+  background: #06b6d4;
+}
+
+.refresh-btn:hover {
+  background: #0891b2;
+}
+
+.loading {
+  text-align: center;
+  color: #10b981;
+  padding: 1rem;
+}
+
+.error {
+  color: #dc2626;
+  padding: 1rem;
+  background: #fee2e2;
+  border-radius: 4px;
+}

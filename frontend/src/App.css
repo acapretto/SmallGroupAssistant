@@ -187,24 +187,31 @@ body {
   font-size: 0.9rem;
 }
 
-.components-placeholder {
+.components-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tutor-chat-panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.learning-tools-panel {
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
 }
 
-.placeholder-box {
+.learning-tools-panel > div {
   background: var(--surface);
-  border: 2px dashed var(--border);
   border-radius: var(--radius);
-  padding: 2rem;
-  text-align: center;
-  color: var(--text-muted);
-}
-
-.placeholder-box h3 {
-  color: var(--primary);
-  margin-bottom: 0.5rem;
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 .session-info {
@@ -302,6 +309,12 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .components-container {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .app-header {
     padding: 1.5rem;
@@ -327,5 +340,9 @@ body {
 
   .app-content {
     padding: 1rem;
+  }
+
+  .components-container {
+    grid-template-columns: 1fr;
   }
 }
