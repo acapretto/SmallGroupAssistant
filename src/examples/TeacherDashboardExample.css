@@ -1,0 +1,137 @@
+/* TeacherDashboardExample.css - Full dashboard layout */
+
+.dashboard {
+  display: flex;
+  height: 100vh;
+  background: #f8f9fa;
+  position: relative;
+}
+
+.dashboard.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #666;
+}
+
+/* Mobile menu button */
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1001;
+  padding: 8px 16px;
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Sidebar */
+.dashboard-sidebar {
+  width: 350px;
+  background: white;
+  border-right: 1px solid #e0e0e0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* No selection state */
+.no-selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #f8f9fa;
+}
+
+.no-selection-content {
+  text-align: center;
+  color: #666;
+  max-width: 400px;
+}
+
+.no-selection-content h2 {
+  margin: 0 0 16px 0;
+  font-size: 24px;
+  color: #1a1a1a;
+}
+
+.no-selection-content p {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.no-selection-content p.hint {
+  color: #999;
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .dashboard-sidebar {
+    width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .dashboard-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    max-height: 50vh;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+  }
+
+  .dashboard-sidebar.open {
+    transform: translateY(0);
+  }
+
+  .dashboard-sidebar.closed {
+    transform: translateY(100%);
+  }
+
+  .dashboard-main {
+    height: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-menu-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .dashboard-sidebar {
+    max-height: 70vh;
+  }
+}

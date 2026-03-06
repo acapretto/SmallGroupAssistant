@@ -1,0 +1,366 @@
+/* SessionViewer.css - Main session review component styles */
+
+.session-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.session-viewer.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #666;
+  font-size: 18px;
+}
+
+/* Header */
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.session-title-area h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.session-date {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.session-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.export-btn,
+.close-btn {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.export-btn:hover {
+  background: #f0f0f0;
+  border-color: #999;
+}
+
+.close-btn:hover {
+  background: #ff4444;
+  color: white;
+  border-color: #ff4444;
+}
+
+/* Info Strip */
+.session-info-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 16px 24px;
+  background: #f0f4f8;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item .label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.info-item .value {
+  font-size: 16px;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.status-active {
+  color: #28a745;
+}
+
+.status-paused {
+  color: #ffc107;
+}
+
+.status-completed {
+  color: #0066cc;
+}
+
+/* Tabs Navigation */
+.tabs-nav {
+  display: flex;
+  gap: 0;
+  padding: 0;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 16px 20px;
+  border: none;
+  background: white;
+  border-bottom: 3px solid transparent;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  background: #f8f9fa;
+  color: #333;
+}
+
+.tab-btn.active {
+  color: #0066cc;
+  border-bottom-color: #0066cc;
+}
+
+/* Tab Content */
+.tab-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* Overview Tab */
+.overview-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.stat-card h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-name {
+  font-size: 14px;
+  color: #666;
+}
+
+.stat-val-lg {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0066cc;
+}
+
+.stat-correct {
+  color: #28a745;
+}
+
+/* Performance Section */
+.performance-section {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.performance-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.score-display {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.score-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.score-number {
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.score-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.score-breakdown {
+  flex: 1;
+}
+
+.score-breakdown p {
+  margin: 0 0 12px 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.score-breakdown p:last-child {
+  margin-bottom: 0;
+}
+
+.score-breakdown strong {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* Notes Tab */
+.notes-tab {
+  display: flex;
+  flex-direction: column;
+}
+
+.notes-editor {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.notes-editor h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.notes-display {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notes-content {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin: 0;
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.notes-empty {
+  color: #999;
+  font-style: italic;
+  margin: 0;
+}
+
+.notes-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notes-input-area textarea {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.notes-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-edit {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #0066cc;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #0052a3;
+}
+
+.btn-secondary {
+  background: #f0f0f0;
+  color: #666;
+  border: 1px solid #e0e0e0;
+}
+
+.btn-secondary:hover {
+  background: #e0e0e0;
+}
+
+.btn-edit {
+  background: white;
+  color: #0066cc;
+  border: 1px solid #0066cc;
+}
+
+.btn-edit:hover {
+  background: #f0f7ff;
+}

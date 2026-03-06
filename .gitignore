@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Production
+/dist
+/build
+
+# Misc
+.DS_Store
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+.project
+.classpath
+
+# OS
+Thumbs.db
+.cache
+
+# Temporary
+.turbo
