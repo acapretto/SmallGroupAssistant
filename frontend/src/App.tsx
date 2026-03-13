@@ -5,6 +5,8 @@ import './App.css'
 import TutorChat from './components/TutorChat'
 import ExampleGenerator from './components/ExampleGenerator'
 import ProblemSet from './components/ProblemSet'
+import HintSystem from './components/HintSystem'
+import SessionViewer from './components/SessionViewer'
 
 interface Group {
   id: string
@@ -24,7 +26,7 @@ interface Session {
   status: 'active' | 'paused' | 'completed'
 }
 
-type ViewMode = 'groups' | 'tutor' | 'sessions'
+type ViewMode = 'groups' | 'tutor' | 'examples' | 'problems' | 'hints' | 'sessions'
 
 function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('groups')
@@ -46,6 +48,12 @@ function App() {
         name: 'Algebra 2 - Period 5',
         members: ['Eve', 'Frank'],
         topic: 'Systems of Linear Equations',
+      },
+      {
+        id: 'group-3',
+        name: 'Pre-Calculus - Period 7',
+        members: ['Grace', 'Henry', 'Ivy'],
+        topic: 'Polynomial Functions',
       },
     ]
     setGroups(sampleGroups)
@@ -82,43 +90,65 @@ function App() {
         ...currentSession,
         status: 'completed' as const,
       }
-      setSessions([...sessions, updatedSession])
-
-      // Save to localStorage
-      localStorage.setItem('smallgroup_sessions', JSON.stringify([...sessions, updatedSession]))
-
+      const updatedSessions = [...sessions, updatedSession]
+      setSessions(updatedSessions)
+      localStorage.setItem('smallgroup_sessions', JSON.stringify(updatedSessions))
       setCurrentSession(null)
       setViewMode('sessions')
     }
   }
+
+  const currentTopic = currentSession?.topic || 'Quadratic Equations'
+  const hasActiveSession = currentSession !== null
 
   return (
     <div className="app">
       {/* Navigation Header */}
       <header className="app-header">
         <div className="header-content">
-          <h1>SmallGroupAssistant</h1>
-          <p>AI-powered tutoring for collaborative learning</p>
+          <h1>Small Group Assistant</h1>
+          <p>AI-powered math tutoring for collaborative learning</p>
         </div>
         <nav className="nav-tabs">
           <button
             className={`nav-tab ${viewMode === 'groups' ? 'active' : ''}`}
             onClick={() => setViewMode('groups')}
           >
-            📚 Groups
+            Groups
           </button>
           <button
             className={`nav-tab ${viewMode === 'tutor' ? 'active' : ''}`}
             onClick={() => setViewMode('tutor')}
-            disabled={!currentSession}
+            disabled={!hasActiveSession}
           >
-            🎓 Tutor
+            Tutor Chat
+          </button>
+          <button
+            className={`nav-tab ${viewMode === 'examples' ? 'active' : ''}`}
+            onClick={() => setViewMode('examples')}
+            disabled={!hasActiveSession}
+          >
+            Examples
+          </button>
+          <button
+            className={`nav-tab ${viewMode === 'problems' ? 'active' : ''}`}
+            onClick={() => setViewMode('problems')}
+            disabled={!hasActiveSession}
+          >
+            Problems
+          </button>
+          <button
+            className={`nav-tab ${viewMode === 'hints' ? 'active' : ''}`}
+            onClick={() => setViewMode('hints')}
+            disabled={!hasActiveSession}
+          >
+            Hints
           </button>
           <button
             className={`nav-tab ${viewMode === 'sessions' ? 'active' : ''}`}
             onClick={() => setViewMode('sessions')}
           >
-            📊 Sessions
+            Sessions
           </button>
         </nav>
       </header>
@@ -149,43 +179,71 @@ function App() {
           </section>
         )}
 
-        {/* Tutor View */}
+        {/* Tutor Chat View */}
         {viewMode === 'tutor' && currentSession && (
           <section className="view tutor-view">
             <div className="tutor-header">
-              <h2>
-                {groups.find(g => g.id === currentSession.groupId)?.name}
-              </h2>
-              <p className="topic-info">Topic: {currentSession.topic}</p>
+              <div>
+                <h2>{groups.find(g => g.id === currentSession.groupId)?.name}</h2>
+                <p className="topic-info">Topic: {currentSession.topic}</p>
+              </div>
               <button className="btn-danger" onClick={handleEndSession}>
                 End Session
               </button>
             </div>
-
-            {/* Integrated components */}
-            <div className="components-container">
-              <div className="tutor-chat-panel">
-                <TutorChat
-                  groupId={currentSession.groupId}
-                  topic={currentSession.topic}
-                />
-              </div>
-              <div className="learning-tools-panel">
-                <ExampleGenerator
-                  topic={currentSession.topic}
-                  difficulty="intermediate"
-                />
-                <ProblemSet
-                  topic={currentSession.topic}
-                  count={3}
-                />
-              </div>
+            <div className="component-panel">
+              <TutorChat
+                groupId={currentSession.groupId}
+                topic={currentSession.topic}
+              />
             </div>
+          </section>
+        )}
 
-            <div className="session-info">
-              <p>Session ID: {currentSession.id}</p>
-              <p>Duration: {Math.round((Date.now() - currentSession.startTime.getTime()) / 1000)}s</p>
-              <p>Score: {currentSession.score.correct}/{currentSession.score.total}</p>
+        {/* Example Generator View */}
+        {viewMode === 'examples' && hasActiveSession && (
+          <section className="view">
+            <div className="view-header">
+              <h2>Worked Examples</h2>
+              <p className="view-subtitle">Generate step-by-step examples for {currentTopic}</p>
+            </div>
+            <div className="component-panel">
+              <ExampleGenerator
+                topic={currentTopic}
+                difficulty="intermediate"
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Problem Set View */}
+        {viewMode === 'problems' && hasActiveSession && (
+          <section className="view">
+            <div className="view-header">
+              <h2>Practice Problems</h2>
+              <p className="view-subtitle">Test your understanding of {currentTopic}</p>
+            </div>
+            <div className="component-panel">
+              <ProblemSet
+                topic={currentTopic}
+                count={3}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Hint System View */}
+        {viewMode === 'hints' && hasActiveSession && (
+          <section className="view">
+            <div className="view-header">
+              <h2>Hint System</h2>
+              <p className="view-subtitle">Get progressive hints when you are stuck</p>
+            </div>
+            <div className="component-panel">
+              <HintSystem
+                problemId="current"
+                problemText={`Practice problem for ${currentTopic}`}
+              />
             </div>
           </section>
         )}
@@ -193,31 +251,31 @@ function App() {
         {/* Sessions View */}
         {viewMode === 'sessions' && (
           <section className="view sessions-view">
-            <h2>Session History</h2>
-            {sessions.length === 0 ? (
-              <p className="empty-state">No sessions yet. Start one from the Groups tab!</p>
-            ) : (
-              <div className="sessions-list">
-                {sessions.map(session => (
-                  <div key={session.id} className="session-card">
-                    <h3>
-                      {groups.find(g => g.id === session.groupId)?.name}
-                    </h3>
-                    <p>Topic: {session.topic}</p>
-                    <p>Date: {new Date(session.startTime).toLocaleString()}</p>
-                    <p>Score: {session.score.correct}/{session.score.total}</p>
-                    <p>Status: {session.status}</p>
-                  </div>
-                ))}
-              </div>
-            )}
+            <SessionViewer
+              onSessionSelect={(sessionId) => {
+                console.log('Selected session:', sessionId)
+              }}
+            />
+          </section>
+        )}
+
+        {/* No active session messaging for disabled tabs */}
+        {!hasActiveSession && ['tutor', 'examples', 'problems', 'hints'].includes(viewMode) && (
+          <section className="view">
+            <div className="empty-state">
+              <h3>No Active Session</h3>
+              <p>Start a tutoring session from the Groups tab to access this feature.</p>
+              <button className="btn-primary" style={{ maxWidth: '300px', margin: '1rem auto' }} onClick={() => setViewMode('groups')}>
+                Go to Groups
+              </button>
+            </div>
           </section>
         )}
       </main>
 
       {/* Footer */}
       <footer className="app-footer">
-        <p>SmallGroupAssistant V0.1 | Build something great together</p>
+        <p>Small Group Assistant v0.9 | AI-Powered Math Tutoring | Built with Claude</p>
       </footer>
     </div>
   )

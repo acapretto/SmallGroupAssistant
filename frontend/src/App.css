@@ -297,6 +297,29 @@ body {
   background: #dc2626;
 }
 
+/* View Headers */
+.view-header {
+  margin-bottom: 1.5rem;
+}
+
+.view-header h2 {
+  margin-bottom: 0.25rem;
+}
+
+.view-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* Component Panel */
+.component-panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  overflow: hidden;
+}
+
 /* Footer */
 .app-footer {
   background: var(--surface);
